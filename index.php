@@ -45,3 +45,4 @@
 	}
 
 	print("The path " . $maxPath . " was visited " . $maxCount . " times.");
+
