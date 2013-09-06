@@ -1,27 +1,17 @@
 <?php
-	class Connection{
-		public $count = 1;
-	}
 
 	class Node{
-		public $Connections = array();
+		public $links = array();
 		function addConnection($pageName){
-			if(isset($this->Connections[$pageName])){
-				$this->Connections[$pageName]->count ++;
+			if(isset($this->links[$pageName])){
+				$this->links[$pageName] ++;
 			} else{
-				$this->Connections[$pageName] = new Connection();
+				$this->links[$pageName] = 1;
 			}
 		}
 	}
 
-	class User{
-		public $location;
-		function __construct($location){
-			$this->location = &$location;
-		}
-	}
-
-	$file = fopen('./apache.log.test', 'r');
+	$file = fopen('./apache.log', 'r');
 	if(!$file) die('Could not find apache.log');
 
 	$users = array();
@@ -32,6 +22,7 @@
 		preg_match('/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) .*"GET (\/.*\/) HTTP/', $line, $info);
 		$ip = $info[1];
 		$pageName = $info[2];
+
 		if(isset($nodes[$pageName])){
 			$page = $nodes[$pageName];
 		} else{
@@ -40,11 +31,13 @@
 		}
 		
 		if(isset($users[$ip])){
-			$users[$ip]->location->addConnection($pageName);
-			$users[$ip]->location = &$page;
+			$users[$ip]->addConnection($pageName);
+			$users[$ip] = $page;
 		} else{
-			$users[$ip] = new User($page);
-		}
+			$users[$ip] = $page;
+		}	
+
+		echo($ip . ", " . $pageName . "\r\n");
 
 	}
 
