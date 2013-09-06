@@ -19,7 +19,7 @@
 
 	while(($line = fgets($file)) !== false){
 		$info = array();
-		preg_match('/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) .*"GET (\/.*\/) HTTP/', $line, $info);
+		preg_match('/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) .*"GET (\/.*\/) H/', $line, $info);
 		$ip = $info[1];
 		$pageName = $info[2];
 
@@ -35,11 +35,45 @@
 			$users[$ip] = $page;
 		} else{
 			$users[$ip] = $page;
-		}	
-
-		echo($ip . ", " . $pageName . "\r\n");
-
+		}
 	}
 
-	//print_r($users);
-	print_r($nodes);
+	$maxWeight = 0;
+	$maxPath = array();
+
+	foreach($nodes as $pageName => $node){
+		$found = findNodeMax($pageName, $node, $nodes);
+		$sum = 0;
+		foreach($found as $path){
+			$sum += $path[1];
+		}
+		if($sum > $maxWeight){
+			$maxWeight = $sum;
+			$maxPath = $found;
+		}
+	}
+
+	foreach($maxPath as $step){
+		echo('"' . $step[0] . '", ');
+	}
+	echo(' appeared ' . $maxWeight . ' times.');
+	
+
+	function findNodeMax($pageName, $node, $nodes, $depth = 0){
+		if($depth == 3){
+			return array();
+		} else{
+			$max = 0;
+			$maxPageName = '';
+			foreach($node->links as $innerPageName => $count){
+				if($count > $max){
+					$max = $count;
+					$maxPageName = $innerPageName;
+				}
+			}
+			if(!$maxPageName) return array();
+			$rtn = findNodeMax($maxPageName, $nodes[$maxPageName], $nodes, $depth + 1);
+			$rtn[] = array($maxPageName, $max);
+			return $rtn;
+		}
+	}
